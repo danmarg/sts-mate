@@ -1,5 +1,5 @@
 # STS-Mate
-An MTA-STS policy server/reverse proxy. Uses LetsEncrypt to fetch certs for
+An [MTA-STS](https://tools.ietf.org/html/draft-ietf-uta-mta-sts) policy server/reverse proxy. Uses LetsEncrypt to fetch certs for
 your host.
 
 # Usage
@@ -26,3 +26,14 @@ To mirror policies from "example.host":
 To serve policies for anyone pointing a CNAME to `mta-sts.example.host`:
 
 `sts-mate --my_real_host mta-sts.example.host --sts_mx *.example.host`
+
+# Stupid-simple Example
+
+Let's say you host mail for "yourdomain" on Google GSuite. Just create these two DNS records:
+
+```
+_mta-sts.yourdomain.       300     IN      TXT     "v=STSv1; id=1"
+mta-sts.yourdomain.      300     IN      CNAME   mta-sts.af0.net.
+```
+
+Presto: magic MTA-STS.
