@@ -83,7 +83,7 @@ func main() {
 
 	// Serve policies.
 	var stsMirror string
-	var stsPolicy string
+	var stsPolicy []byte
 	if *mirrorStsFrom != "" {
 		stsMirror = fmt.Sprintf("https://mta-sts.%v/.well-known/mta-sts.txt", *mirrorStsFrom)
 	} else {
@@ -91,7 +91,7 @@ func main() {
 		for i := range mxs {
 			mxs[i] = "mx: " + mxs[i]
 		}
-		stsPolicy = fmt.Sprintf("version: STSv1\nmode: %s\nmax_age: %s\n%s", *stsMode, *stsMaxAge, strings.Join(mxs, "\n"))
+		stsPolicy = []byte(fmt.Sprintf("version: STSv1\nmode: %s\nmax_age: %s\n%s", *stsMode, *stsMaxAge, strings.Join(mxs, "\n")))
 	}
 	http.HandleFunc("/.well-known/mta-sts.txt", func(w http.ResponseWriter, req *http.Request) {
 		log.Println("%s : %s : %s\n", req.RemoteAddr, req.Host, req.UserAgent())
@@ -108,7 +108,7 @@ func main() {
 			}
 			policy = &contents
 		} else {
-			*policy = ([]byte(stsPolicy))
+			policy = &stsPolicy
 		}
 		_, err := w.Write(*policy)
 		if err != nil {
