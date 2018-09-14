@@ -44,13 +44,16 @@ func hostPolicy() autocert.HostPolicy {
 	}
 	return func(ctx context.Context, host string) error {
 		// Check that the incoming host is a CNAME to us.
-		if h, err := net.LookupCNAME(host); err != nil {
-			return err
-		} else if h != *myRealHost {
-			return fmt.Errorf("incoming host %s is not a cname for %s", host, myRealHost)
+		if host != *myRealHost {
+			if h, err := net.LookupCNAME(host); err != nil {
+				return err
+			} else if h != *myRealHost+"." {
+				return fmt.Errorf("incoming host %s is not a cname for %s", host, *myRealHost)
+			}
 		}
 		// And that we haven't tried this host too many times.
-		p := filepath.Join(*certdir, hostsDir, filepath.Clean(host))
+		hdir := filepath.Join(*certdir, hostsDir)
+		p := filepath.Join(hdir, filepath.Clean(host))
 		if s, err := os.Stat(p); err != nil {
 			if !os.IsNotExist(err) {
 				// Some other unexpected error here.
@@ -61,6 +64,11 @@ func hostPolicy() autocert.HostPolicy {
 			return fmt.Errorf("too recently attempted host %s", host)
 		}
 		// Touch the host file.
+		if _, err := os.Stat(hdir); os.IsNotExist(err) {
+			if err := os.MkdirAll(hdir, 0700); err != nil {
+				return err
+			}
+		}
 		_, err := os.Create(p)
 		return err
 	}
