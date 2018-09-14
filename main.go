@@ -106,7 +106,7 @@ func main() {
 		stsPolicy = []byte(fmt.Sprintf("version: STSv1\nmode: %s\nmax_age: %s\n%s", *stsMode, *stsMaxAge, strings.Join(mxs, "\n")))
 	}
 	http.HandleFunc("/.well-known/mta-sts.txt", func(w http.ResponseWriter, req *http.Request) {
-		log.Println("%s : %s : %s\n", req.RemoteAddr, req.Host, req.UserAgent())
+		log.Printf("%s : %s : %s\n", req.RemoteAddr, req.Host, req.UserAgent())
 		var policy *[]byte
 		if stsMirror != "" {
 			response, err := http.Get(stsMirror)
