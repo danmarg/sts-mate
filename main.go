@@ -36,7 +36,11 @@ var (
 func hostPolicy() autocert.HostPolicy {
 	if *domains != "" {
 		// If there is a whitelist, just use that.
-		return autocert.HostWhitelist(strings.Split(*domains, ",")...)
+		ds := strings.Split(*domains, ",")
+		for i := range ds {
+			ds[i] = "mta-sts." + ds[i]
+		}
+		return autocert.HostWhitelist(ds...)
 	}
 	return func(ctx context.Context, host string) error {
 		// Check that the incoming host is a CNAME to us.
