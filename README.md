@@ -32,7 +32,7 @@ To serve policies for anyone pointing a CNAME to `mta-sts.example.host`:
 Let's say you host mail for "yourdomain" on Google GSuite. Just create these two DNS records:
 
 ```
-_mta-sts.yourdomain.       300     IN      TXT     "v=STSv1; id=1"
+_mta-sts.yourdomain.       300     IN      CNAME     _mta-sts.af0.net.
 mta-sts.yourdomain.      300     IN      CNAME   mta-sts.af0.net.
 ```
 
