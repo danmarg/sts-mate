@@ -1,6 +1,7 @@
 package main
 
 import (
+	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 
 	"context"
@@ -26,6 +27,7 @@ var (
 	certdir           = flag.String("certificate_dir", "certificate-dir", "Directory in which to store certificates.")
 	myRealHost        = flag.String("my_real_host", "", "If set, ensure that any host we haven't seen has a CNAME to us.")
 	tryCertNoMoreThan = flag.Duration("try_cert_no_more_often_than", 24*time.Hour, "Don't try to request a cert for a host more often than this.")
+	staging           = flag.Bool("staging", false, "If true, uses Let's Encrypt 'staging' environment instead of prod.")
 	// Policy options.
 	mirrorStsFrom = flag.String("mirror_sts_from", "", "If set (e.g. 'google.com'), proxy the STS policy for this domain.")
 	stsMode       = flag.String("sts_mode", "testing", "STS mode: 'testing' or 'enforce'.")
@@ -133,6 +135,9 @@ func main() {
 		Cache:      autocert.DirCache(filepath.Join(*certdir, certsDir)),
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: hostPolicy(),
+	}
+	if *staging {
+		cm.Client = &acme.Client{DirectoryURL: "https://acme-staging.api.letsencrypt.org/directory"}
 	}
 
 	srv := &http.Server{
