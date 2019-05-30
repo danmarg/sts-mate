@@ -1,6 +1,21 @@
 # STS-Mate
-An [MTA-STS](https://tools.ietf.org/html/draft-ietf-uta-mta-sts) policy server/reverse proxy. Uses LetsEncrypt to fetch certs for
-your host.
+An [MTA-STS](https://tools.ietf.org/html/draft-ietf-uta-mta-sts) policy
+server/reverse proxy. Uses LetsEncrypt to fetch certs for your host.
+
+# I just want to set up MTA-STS for my GSuite domain
+
+You're in luck! With just two simple DNS records, you can set up MTA-STS on your
+GSuite-hosted domain.
+
+```
+_mta-sts.[yourdomain] CNAME _mta.sts.google.com.
+_mta-sts.[yourdomain] CNAME gsuite-mta-sts.af0.net.
+```
+
+An example configuration can be found at `af0.net`.
+
+(Note: I can't promise any ongoing support for this service, so use at your own
+risk, but STS fails gracefully--cached policies expire and fail open.)
 
 # Usage
 
