@@ -146,6 +146,10 @@ func main() {
 		Handler:   http.DefaultServeMux,
 	}
 
-	fmt.Fprintln(os.Stderr, srv.ListenAndServeTLS("", ""))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "443"
+	}
+	fmt.Fprintln(os.Stderr, srv.ListenAndServeTLS(":"+port, ""))
 	os.Exit(2)
 }
