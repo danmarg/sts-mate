@@ -145,11 +145,17 @@ func main() {
 		TLSConfig: cm.TLSConfig(),
 		Handler:   http.DefaultServeMux,
 	}
+	go func() {
+		// Serve on HTTP so that Docker hosts who want to just know we are
+		// "live" can check.
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = "8080"
+		}
+		fmt.Fprintln(os.Stderr, http.ListenAndServe(":"+port, http.NotFoundHandler()))
+	}()
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "443"
-	}
-	fmt.Fprintln(os.Stderr, srv.ListenAndServeTLS(":"+port, ""))
+	// Serve the HTTPS endpoint.
+	fmt.Fprintln(os.Stderr, srv.ListenAndServeTLS("", ""))
 	os.Exit(2)
 }
