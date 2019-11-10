@@ -11,4 +11,4 @@ EXPOSE 443
 #  --my_real_host is the hostname running sts-mate
 #  --mirror_sts_from is the mail domain from which to proxy STS policies
 #  --domain is the domain for which to serve a policy (if limited)
-CMD ["./sts-mate --my_real_host mta-sts.af0.net --mirror_sts_from google.com"]
+CMD ["./sts-mate", "--my_real_host", "mta-sts.af0.net", "--mirror_sts_from", "google.com"]
