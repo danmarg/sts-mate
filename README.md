@@ -52,3 +52,13 @@ mta-sts.yourdomain.      300     IN      CNAME   mta-sts.af0.net.
 ```
 
 Presto: magic MTA-STS. (You can test it with [sts-tester.af0.net/](http://sts-tester.af0.net/).)
+
+# Installing via Docker
+
+Run these commands to install in a Docker container. This will download and build from Github
+and configure the container to run on the host's port 443.
+
+```
+$ docker build github.com/danmarg/sts-mate -t mta-sts
+$ docker run -dit --restart unless-stopped --net host mta-sts
+```
