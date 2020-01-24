@@ -27,6 +27,7 @@ var (
 	certdir           = flag.String("certificate_dir", "certificate-dir", "Directory in which to store certificates.")
 	myRealHost        = flag.String("my_real_host", "", "If set, ensure that any host we haven't seen has a CNAME to us.")
 	tryCertNoMoreThan = flag.Duration("try_cert_no_more_often_than", 24*time.Hour, "Don't try to request a cert for a host more often than this.")
+	serveHttp         = flag.Bool("http", false, "If true, serves HTTP instead of HTTPS (and does not fetch certs). Useful for serving behind an HTTPS-terminating proxy.")
 	staging           = flag.Bool("staging", false, "If true, uses Let's Encrypt 'staging' environment instead of prod.")
 	// Policy options.
 	mirrorStsFrom = flag.String("mirror_sts_from", "", "If set (e.g. 'google.com'), proxy the STS policy for this domain.")
@@ -78,7 +79,8 @@ func hostPolicy() autocert.HostPolicy {
 
 func main() {
 	flag.Parse()
-	if *domains == "" && *myRealHost == "" {
+	if *domains == "" && *myRealHost == "" && !*serveHttp {
+		// Note that if we are serving HTTP, --domain and --my_real_host do nothing.
 		fmt.Fprintln(os.Stderr, "Must specify --domain or --my_real_host for safety.")
 		os.Exit(2)
 	}
@@ -92,6 +94,10 @@ func main() {
 	}
 	if *stsMode != "" && *stsMode != "testing" && *stsMode != "none" && *stsMode != "enforce" {
 		fmt.Fprintln(os.Stderr, "--sts_mode must be one of 'testing', 'enforce', 'none'.")
+		os.Exit(2)
+	}
+	if *serveHttp && *staging {
+		fmt.Fprintln(os.Stderr, "--http and --staging cannot be used together.")
 		os.Exit(2)
 	}
 
@@ -130,32 +136,44 @@ func main() {
 		}
 	})
 
-	// Initialize certificate manager.
-	cm := &autocert.Manager{
-		Cache:      autocert.DirCache(filepath.Join(*certdir, certsDir)),
-		Prompt:     autocert.AcceptTOS,
-		HostPolicy: hostPolicy(),
-	}
-	if *staging {
-		cm.Client = &acme.Client{DirectoryURL: "https://acme-staging.api.letsencrypt.org/directory"}
-	}
-
 	srv := &http.Server{
-		Addr:      ":https",
-		TLSConfig: cm.TLSConfig(),
-		Handler:   http.DefaultServeMux,
+		Handler: http.DefaultServeMux,
 	}
-	go func() {
-		// Serve on HTTP so that Docker hosts who want to just know we are
-		// "live" can check.
-		port := os.Getenv("PORT")
-		if port == "" {
-			port = "8080"
-		}
-		fmt.Fprintln(os.Stderr, http.ListenAndServe(":"+port, http.NotFoundHandler()))
-	}()
 
-	// Serve the HTTPS endpoint.
-	fmt.Fprintln(os.Stderr, srv.ListenAndServeTLS("", ""))
+	if *serveHttp {
+		srv.Addr = ":http"
+	} else {
+		// Initialize certificate manager.
+		cm := &autocert.Manager{
+			Cache:      autocert.DirCache(filepath.Join(*certdir, certsDir)),
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: hostPolicy(),
+		}
+		if *staging {
+			cm.Client = &acme.Client{DirectoryURL: "https://acme-staging.api.letsencrypt.org/directory"}
+		}
+		srv.Addr = ":https"
+		srv.TLSConfig = cm.TLSConfig()
+	}
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	port = ":" + port
+
+	if *serveHttp {
+		// Serve the HTTP endpoint.
+		srv.Addr = port
+		fmt.Fprintln(os.Stderr, srv.ListenAndServe())
+	} else {
+		// Serve the HTTPS endpoint.
+		fmt.Fprintln(os.Stderr, srv.ListenAndServeTLS("", ""))
+		// Serve nothing on HTTP so that Docker hosts who want
+		// to just know we are "live" can check.
+		go func() {
+			fmt.Fprintln(os.Stderr, http.ListenAndServe(port, http.NotFoundHandler()))
+		}()
+
+	}
 	os.Exit(2)
 }
