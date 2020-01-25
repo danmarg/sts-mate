@@ -4,7 +4,14 @@ server/reverse proxy. Uses LetsEncrypt to fetch certs for your host.
 
 # I just want to set up MTA-STS for my GSuite domain
 
-You're in luck! With just two simple DNS records, you can set up MTA-STS on your
+*Update:* I've stopped hosting a "catchall" reverse proxy for GSuite, because
+nobody else seemed to be using it.
+
+Instead, I've deployed sts-mate on Google Cloud Run, which is slightly cheaper
+but does not allow dynamically fetching TLS certs. See instructions below on how
+to deploy your own.
+
+~~You're in luck! With just two simple DNS records, you can set up MTA-STS on your
 GSuite-hosted domain.
 
 ```
@@ -15,7 +22,7 @@ _mta-sts.[yourdomain] CNAME gsuite-mta-sts.af0.net.
 An example configuration can be found at `af0.net`.
 
 (Note: I can't promise any ongoing support for this service, so use at your own
-risk, but STS fails gracefully--cached policies expire and fail open.)
+risk, but STS fails gracefully--cached policies expire and fail open.)~~
 
 # Usage
 
@@ -62,3 +69,28 @@ and configure the container to run on the host's port 443.
 $ docker build github.com/danmarg/sts-mate -t mta-sts
 $ docker run -dit --restart unless-stopped --net host mta-sts
 ```
+
+# Deploying on Google Cloud Run
+
+These instructions require the [gcloud](https://cloud.google.com/sdk/gcloud/)
+tool.
+
+```
+$ export PROJECT="my project ID"  # This is just a unique ID
+$ export DOMAIN="example.user"  # Your domain
+$ gcloud projects create $PROJET
+$ git clone https://github.com/danmarg/sts-mate.git
+$ cd sts-mate
+$ gcloud builds submit --tag gcr.io/$PROJECT/sts-mate  # Submit a Docker image
+$ gcloud run deploy \   # Deploy on Cloud Run
+   --image gcr.io/$PROJECT/sts-mate \
+  --platform managed \
+  --update-env-vars STS_DOMAIN="$DOMAIN",HTTP="http",MIRROR_STS_FROM="google.com"
+$ gcloud domains verify $DOMAIN   $ Verify you own your domain
+$ gcloud beta run domain-mappings create \  # Map your domain to Cloud Run
+  --service sts-mate --domain mta-sts.$DOMAIN
+```
+
+You will have to update your domain's DNS with the requisite CNAME (per the
+output of the last command above) and, of course, the `_mta-sts` TXT record.
+
