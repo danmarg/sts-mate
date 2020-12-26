@@ -27,8 +27,10 @@ var (
 	certdir           = flag.String("certificate_dir", "certificate-dir", "Directory in which to store certificates.")
 	myRealHost        = flag.String("my_real_host", "", "If set, ensure that any host we haven't seen has a CNAME to us.")
 	tryCertNoMoreThan = flag.Duration("try_cert_no_more_often_than", 24*time.Hour, "Don't try to request a cert for a host more often than this.")
-	serveHttp         = flag.Bool("http", false, "If true, serves HTTP instead of HTTPS (and does not fetch certs). Useful for serving behind an HTTPS-terminating proxy.")
+	serveHTTP         = flag.Bool("http", false, "If true, serves HTTP instead of HTTPS (and does not fetch certs). Useful for serving behind an HTTPS-terminating proxy.")
 	staging           = flag.Bool("staging", false, "If true, uses Let's Encrypt 'staging' environment instead of prod.")
+	acmeEndpoint      = flag.String("acme_endpoint", "", "If set, uses a custom ACME endpoint URL. It doesn't make sense to use this with --staging.")
+
 	// Policy options.
 	mirrorStsFrom = flag.String("mirror_sts_from", "", "If set (e.g. 'google.com'), proxy the STS policy for this domain.")
 	stsMode       = flag.String("sts_mode", "testing", "STS mode: 'testing' or 'enforce'.")
@@ -79,7 +81,7 @@ func hostPolicy() autocert.HostPolicy {
 
 func main() {
 	flag.Parse()
-	if *domains == "" && *myRealHost == "" && !*serveHttp {
+	if *domains == "" && *myRealHost == "" && !*serveHTTP {
 		// Note that if we are serving HTTP, --domain and --my_real_host do nothing.
 		fmt.Fprintln(os.Stderr, "Must specify --domain or --my_real_host for safety.")
 		os.Exit(2)
@@ -96,8 +98,9 @@ func main() {
 		fmt.Fprintln(os.Stderr, "--sts_mode must be one of 'testing', 'enforce', 'none'.")
 		os.Exit(2)
 	}
-	if *serveHttp && *staging {
-		fmt.Fprintln(os.Stderr, "--http and --staging cannot be used together.")
+	if *serveHTTP && (*staging || (*acmeEndpoint != "")) ||
+	 (*staging && (*acmeEndpoint != "")) {
+		fmt.Fprintln(os.Stderr, "Only one of --http, --staging, and --acme_endpoint can be used.")
 		os.Exit(2)
 	}
 
@@ -140,7 +143,7 @@ func main() {
 		Handler: http.DefaultServeMux,
 	}
 
-	if *serveHttp {
+	if *serveHTTP {
 		srv.Addr = ":http"
 	} else {
 		// Initialize certificate manager.
@@ -149,7 +152,9 @@ func main() {
 			Prompt:     autocert.AcceptTOS,
 			HostPolicy: hostPolicy(),
 		}
-		if *staging {
+		if *acmeEndpoint != "" {
+			cm.Client = &acme.Client{DirectoryURL: *acmeEndpoint}
+		} else if *staging {
 			cm.Client = &acme.Client{DirectoryURL: "https://acme-staging.api.letsencrypt.org/directory"}
 		}
 		srv.Addr = ":https"
@@ -161,7 +166,7 @@ func main() {
 	}
 	port = ":" + port
 
-	if *serveHttp {
+	if *serveHTTP {
 		// Serve the HTTP endpoint.
 		srv.Addr = port
 		fmt.Fprintln(os.Stderr, srv.ListenAndServe())
