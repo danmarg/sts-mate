@@ -78,7 +78,7 @@ tool.
 ```
 $ export PROJECT="my project ID"  # This is just a unique ID
 $ export DOMAIN="example.user"  # Your domain
-$ gcloud projects create $PROJET
+$ gcloud projects create $PROJECT
 $ git clone https://github.com/danmarg/sts-mate.git
 $ cd sts-mate
 $ gcloud builds submit --tag gcr.io/$PROJECT/sts-mate  # Submit a Docker image
