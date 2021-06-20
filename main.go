@@ -114,7 +114,7 @@ func main() {
 		for i := range mxs {
 			mxs[i] = "mx: " + mxs[i]
 		}
-		stsPolicy = []byte(fmt.Sprintf("version: STSv1\nmode: %s\nmax_age: %s\n%s\n", *stsMode, *stsMaxAge, strings.Join(mxs, "\n")))
+		stsPolicy = []byte(fmt.Sprintf("version: STSv1\r\nmode: %s\r\nmax_age: %s\r\n%s\r\n", *stsMode, *stsMaxAge, strings.Join(mxs, "\r\n")))
 	}
 	http.HandleFunc("/.well-known/mta-sts.txt", func(w http.ResponseWriter, req *http.Request) {
 		log.Printf("%s : %s : %s\n", req.RemoteAddr, req.Host, req.UserAgent())
