@@ -155,7 +155,7 @@ func main() {
 		if *acmeEndpoint != "" {
 			cm.Client = &acme.Client{DirectoryURL: *acmeEndpoint}
 		} else if *staging {
-			cm.Client = &acme.Client{DirectoryURL: "https://acme-staging.api.letsencrypt.org/directory"}
+			cm.Client = &acme.Client{DirectoryURL: "https://acme-staging-v02.api.letsencrypt.org/directory"}
 		}
 		srv.Addr = ":https"
 		srv.TLSConfig = cm.TLSConfig()
