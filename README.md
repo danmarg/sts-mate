@@ -58,7 +58,10 @@ _mta-sts.yourdomain.     300     IN      CNAME   _mta-sts.af0.net.
 mta-sts.yourdomain.      300     IN      CNAME   mta-sts.af0.net.
 ```
 
-Presto: magic MTA-STS. (You can test it with [sts-tester.af0.net/](http://sts-tester.af0.net/).)
+Presto: magic MTA-STS. (You can test it with one of many MTA-STS validators: 
+[e.g.](https://www.mailhardener.com/tools/mta-sts-validator),
+[e.g.](https://mxtoolbox.com/mta-sts.aspx),
+[e.g.](https://easydmarc.com/tools/mta-sts-check).)
 
 # Installing via Docker
 
