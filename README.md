@@ -88,7 +88,7 @@ $ gcloud builds submit --tag gcr.io/$PROJECT/sts-mate  # Submit a Docker image
 $ gcloud run deploy \   # Deploy on Cloud Run
    --image gcr.io/$PROJECT/sts-mate \
   --platform managed \
-  --update-env-vars STS_DOMAIN="$DOMAIN",HTTP="http",MIRROR_STS_FROM="google.com"
+  --update-env-vars STS_DOMAIN="$DOMAIN",HTTP="true",MIRROR_STS_FROM="google.com"
 $ gcloud domains verify $DOMAIN   $ Verify you own your domain
 $ gcloud beta run domain-mappings create \  # Map your domain to Cloud Run
   --service sts-mate --domain mta-sts.$DOMAIN
