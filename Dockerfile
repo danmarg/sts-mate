@@ -27,4 +27,4 @@ ENV HTTP "false"
 #  --domain is the domain to serve a policy for.
 #  --mirror_sts_from is the mail domain from which to proxy STS policies
 #  --domain is the domain for which to serve a policy (if limited)
-CMD ["sh", "-c", "./sts-mate --domain=$STS_DOMAIN --mirror_sts_from=$MIRROR_STS_FROM --http=$HTTP --sts_mx=$STS_MX --sts_mode=$STS_MODE --sts_max_age=$STS_MAX_AGE]
+CMD ["sh", "-c", "./sts-mate --domain=$STS_DOMAIN --mirror_sts_from=$MIRROR_STS_FROM --http=$HTTP --sts_mx=$STS_MX --sts_mode=$STS_MODE --sts_max_age=$STS_MAX_AGE"]
