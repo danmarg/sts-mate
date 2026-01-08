@@ -8,9 +8,18 @@ RUN go build -o sts-mate .
 EXPOSE 443
 
 # Comma-separated list of domains to serve policies for.
-ENV STS_DOMAIN "example.user"
+ENV STS_DOMAIN ""
 # Source of the live STS policy to mirror.
-ENV MIRROR_STS_FROM "google.com"
+ENV MIRROR_STS_FROM ""
+
+# If instead you want to specify policy params manually, fill these:
+# e.g. *.amazonaws.com.
+ENV STS_MX ""
+# testing | enforce
+ENV STS_MODE ""
+# e.g. 86400
+ENV STS_MAX_AGE ""
+
 # If set to true, serves the policy on HTTP (instead of HTTPS). Good for
 # when you are behind an HTTPS-terminating reverse proxy.
 ENV HTTP "false"
@@ -18,4 +27,4 @@ ENV HTTP "false"
 #  --domain is the domain to serve a policy for.
 #  --mirror_sts_from is the mail domain from which to proxy STS policies
 #  --domain is the domain for which to serve a policy (if limited)
-CMD ["sh", "-c", "./sts-mate --domain=$STS_DOMAIN --mirror_sts_from=$MIRROR_STS_FROM --http=$HTTP"]
+CMD ["sh", "-c", "./sts-mate --domain=$STS_DOMAIN --mirror_sts_from=$MIRROR_STS_FROM --http=$HTTP --sts_mx=$STS_MX --sts_mode=$STS_MODE --sts_max_age=$STS_MAX_AGE]
