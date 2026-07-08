@@ -1,6 +1,6 @@
 module github.com/danmarg/sts-mate
 
-require golang.org/x/crypto v0.51.0
+require golang.org/x/crypto v0.52.0
 
 require (
 	golang.org/x/net v0.55.0 // indirect
